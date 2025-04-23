@@ -73,7 +73,7 @@ export function MovieCard({ movie }: { movie: Movie }) {
           <PopoverTrigger asChild>
             <img src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`} className="rounded-md" />
           </PopoverTrigger>
-          <PopoverContent className="w-80 bg-slate-900 text-white border-slate-800 flex flex-col gap-4">
+          <PopoverContent key={movie.id} className="w-80 bg-slate-900 text-white border-slate-800 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <h1 className="text-lg font-semibold">{movie.title ?? movie.name} <span className="text-slate-400">({(movie.release_date ?? movie.first_air_date).slice(0, 4)})</span></h1>
               <Separator className="bg-slate-800" />
@@ -82,12 +82,46 @@ export function MovieCard({ movie }: { movie: Movie }) {
 
             <div className="flex items-center justify-between">
               <h1 className="font-semibold">Interested?</h1>
-              <Button
-                className="bg-slate-900 border-slate-800 cursor-pointer"
-                variant={"outline"}
-                disabled={movie.unavailable}
-                onClick={() => navigate(`/watch?movie=${movie.id}`)}
-              ><PlayCircle />Watch Now</Button>
+              <div className="flex gap-2">
+                <Button
+                  className="bg-slate-900 border-slate-800 cursor-pointer group"
+                  variant={"outline"}
+                  disabled={movie.unavailable}
+                  onClick={() => {
+                    const myList = JSON.parse(localStorage.getItem("myList") || "[]");
+                    const prefix = movie.title ? "mv" : "tv";
+                    const movieIdWithPrefix = `${prefix}-${movie.id}`;
+                    if (!myList.includes(movieIdWithPrefix)) {
+                      myList.push(movieIdWithPrefix);
+                      movie.isClicked = true;
+                    } else {
+                      const index = myList.indexOf(movieIdWithPrefix);
+                      if (index > -1) {
+                        myList.splice(index, 1);
+                        movie.isClicked = false;
+                      }
+                    }
+                    document.querySelectorAll(".lucide-heart").forEach((el) => {
+                      const heart = el as HTMLElement;
+                      heart.style.fill = movie.isClicked ? "red" : "";
+                      heart.style.color = movie.isClicked ? "red" : "";
+                      console.log(heart.style.fill)
+                    });
+                    localStorage.setItem("myList", JSON.stringify(myList));
+                  }}
+                >
+                  <Heart className="group-hover:fill-red-500 group-hover:text-red-500 transition-all" style={{
+                    fill: movie.isClicked ? "red" : "none",
+                    color: movie.isClicked ? "red" : "inherit",
+                  }} />
+                </Button>
+                <Button
+                  className="bg-slate-900 border-slate-800 cursor-pointer"
+                  variant={"outline"}
+                  disabled={movie.unavailable}
+                  onClick={() => navigate(`/watch?${movie.title ? "movie" : "tv"}=${movie.id}`)}
+                ><PlayCircle />Watch Now</Button>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
