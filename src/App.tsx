@@ -6,11 +6,13 @@ import { useState } from "react"
 import { useEffect } from "react";
 import { NavBar } from "./components/ui/navbar";
 import { API_KEY } from "./lib/config";
-import { Movie } from "./interfaces/movie";
+import { Movie } from "./constants/movie";
 import { MovieSection } from "./components/ui/movie-section";
+import { movieConfig } from "./constants/movie-config";
 
 interface MoviesResult {
-  page: number;
+  title: string;
+  description: string;
   results: Movie[];
 }
 
@@ -28,10 +30,8 @@ export default function App() {
 
 
 function Home() {
-  const [popularMovies, setPopularMovies] = useState<MoviesResult>();
-  const [nowPlayingMovies, setNowPlayingMovies] = useState<MoviesResult>();
-  const [topRatedMovies, setTopRatedMovies] = useState<MoviesResult>();
-  const [upcomingMovies, setUpcomingMovies] = useState<MoviesResult>();
+  const [moviesData, setMoviesData] = useState<Record<string, MoviesResult>>();
+  const [myList, setMyList] = useState<Movie[]>([]);
 
   useEffect(() => {
     const options = {
@@ -42,67 +42,76 @@ function Home() {
       }
     };
 
-    const fetchPopularMovies = () => {
-      const url = 'https://api.themoviedb.org/3/movie/popular?language=en-US&page=1';
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => setPopularMovies(json))
-        .catch(err => console.error(err));
+    const baseUrl = "https://api.themoviedb.org/3/";
+    const baseArgs = "?language=en-US&page=1";
+
+    Promise.all(
+      movieConfig.map(async (m) => {
+        const url = `${baseUrl}${m.type ?? "movie"}/${m.category}${baseArgs}`
+        const response = await fetch(url, options);
+        const json = await response.json();
+        return { key: m.key, data: { title: m.title, description: m.description, results: json.results } };
+      })
+    ).then((movies) => {
+      const moviesObject = movies.reduce((acc, movie) => {
+        acc[movie.key] = movie.data;
+        return acc;
+      }, {} as Record<string, MoviesResult>);
+      setMoviesData(moviesObject);
+    });
+
+    const fetchMovieDetails = async (id: number) => {
+      const url = `${baseUrl}${id.toString().startsWith("tv") ? "tv" : "movie"}/${id.toString().slice(3)}?language=en-US`;
+      const response = await fetch(url, options);
+      const json = await response.json();
+      return json as Movie;
     };
 
-    const fetchNowPlayingMovies = () => {
-      const url = 'https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1';
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => setNowPlayingMovies(json))
-        .catch(err => console.error(err));
-    };
+    const myListStorage = JSON.parse(localStorage.getItem("myList") || "[]");
+    myListStorage.forEach((id: number) => {
+      fetchMovieDetails(id).then((movie) =>
+        myListStorage.push(movie)
+      );
+    });
 
-    const fetchTopRatedMovies = () => {
-      const url = 'https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1';
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => setTopRatedMovies(json))
-        .catch(err => console.error(err));
-    };
-
-    const fetchUpcomingMovies = () => {
-      const url = 'https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1';
-      fetch(url, options)
-        .then(res => res.json())
-        .then(json => setUpcomingMovies(json))
-        .catch(err => console.error(err));
-    };
-
-    fetchPopularMovies();
-    fetchNowPlayingMovies();
-    fetchTopRatedMovies();
-    fetchUpcomingMovies();
+    Promise.all(myListStorage.map(fetchMovieDetails)).then((movies) => {
+      setMyList(movies);
+    });
   }, []);
 
-  if (!popularMovies || !nowPlayingMovies || !topRatedMovies || !upcomingMovies) {
+
+  if (!moviesData || Object.keys(moviesData ?? {}).length !== movieConfig.length) {
     return <div></div>
   }
 
-  nowPlayingMovies.results = nowPlayingMovies.results.filter(
-    (movie) => !popularMovies.results.some((popularMovie) => popularMovie.id === movie.id)
+  moviesData.nowPlaying.results = moviesData.nowPlaying.results.filter(
+    (movie: Movie) => !moviesData.popular.results.some((popularMovie: Movie) => popularMovie.id === movie.id)
   );
 
-  upcomingMovies.results = upcomingMovies.results.filter(
-    (movie) =>
-      !popularMovies.results.some((popularMovie) => popularMovie.id === movie.id) &&
-      !nowPlayingMovies.results.some((nowPlayingMovie) => nowPlayingMovie.id === movie.id) &&
-      !topRatedMovies.results.some((topRatedMovie) => topRatedMovie.id === movie.id)
+  moviesData.upcoming.results = moviesData.upcoming.results.filter(
+    (movie: Movie) =>
+      !moviesData.popular.results.some((popularMovie: Movie) => popularMovie.id === movie.id) &&
+      !moviesData.nowPlaying.results.some((nowPlayingMovie: Movie) => nowPlayingMovie.id === movie.id) &&
+      !moviesData.topRated.results.some((topRatedMovie: Movie) => topRatedMovie.id === movie.id)
   );
-  upcomingMovies.results = upcomingMovies.results.map((movie) => ({ ...movie, unavailable: true }));
+  moviesData.upcoming.results = moviesData.upcoming.results.map((movie: Movie) => ({ ...movie, unavailable: true }));
+
+  myList.forEach((movie) => {
+    movie.isClicked = true;
+  });
 
   return (
     <div className="flex flex-col justify-center min-h-svh bg-slate-950 px-4 md:px-16 lg:px-64 py-8 md:py-16 gap-8">
       <NavBar />
-      <MovieSection title="Popular Movies" description="Most popular & trending movies as of now." movies={popularMovies.results} />
-      <MovieSection title="Now Playing" description="Movies currently playing in theaters. (Excluding Popular)" movies={nowPlayingMovies.results} />
-      <MovieSection title="Top Rated" description="Top-rated movies of all time." movies={topRatedMovies.results} />
-      <MovieSection title="Upcoming Movies" description="Movies that are coming soon to theaters." movies={upcomingMovies.results} />
+      {myList.length > 0 && <MovieSection title="My List" description="Your saved movies & TV shows" movies={myList} />}
+      {movieConfig.map((config) => (
+        <MovieSection
+          key={config.key}
+          title={config.title}
+          description={config.description}
+          movies={moviesData[config.key]?.results || []}
+        />
+      ))}
     </div>
   )
 }

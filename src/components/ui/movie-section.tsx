@@ -1,4 +1,4 @@
-import { Movie } from "@/interfaces/movie";
+import { Movie } from "@/constants/movie";
 import { MovieCard } from "./movie-card";
 import { Separator } from "./separator";
 
@@ -27,8 +27,8 @@ export function MovieSection({ title, description, movies }: { title: string; de
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="sm:flex hidden" />
-        <CarouselNext className="sm:flex hidden" />
+        <CarouselPrevious className="sm:flex hidden cursor-pointer" />
+        <CarouselNext className="sm:flex hidden cursor-pointer" />
       </Carousel>
     </div>
   )
