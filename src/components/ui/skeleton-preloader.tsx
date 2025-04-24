@@ -10,7 +10,7 @@ export function SkeletonPreloader() {
           <Skeleton className="bg-slate-800 w-[150px] h-[25px] rounded-full" />
           <Skeleton className="bg-slate-800 w-[250px] h-[20px] rounded-full" />
           <div className="flex gap-4">
-            {Array.from({ length: 5 }).map((_, idx) => (
+            {Array.from({ length: 6 }).map((_, idx) => (
               <div className="flex flex-col gap-2">
                 <Skeleton key={idx} className="bg-slate-800 w-full max-w-[225px] h-[300px] rounded-lg" />
                 <Skeleton className="bg-slate-800 w-[175px] h-[25px] rounded-full" />
