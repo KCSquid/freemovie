@@ -13,6 +13,7 @@ import { MoviesResult } from "./constants/movies-result";
 import Genre from "./pages/Genre";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
+import { SkeletonPreloader } from "./components/ui/skeleton-preloader";
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
 function Home() {
   const [moviesData, setMoviesData] = useState<Record<string, MoviesResult>>();
   const [myList, setMyList] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const options = {
@@ -75,12 +77,12 @@ function Home() {
 
     Promise.all(myListStorage.map(fetchMovieDetails)).then((movies) => {
       setMyList(movies);
+      setLoading(false);
     });
   }, []);
 
-
-  if (!moviesData || Object.keys(moviesData ?? {}).length !== movieConfig.length) {
-    return <div></div>
+  if (loading || !moviesData || Object.keys(moviesData ?? {}).length !== movieConfig.length) {
+    return <SkeletonPreloader />;
   }
 
   moviesData.nowPlaying.results = moviesData.nowPlaying.results.filter(

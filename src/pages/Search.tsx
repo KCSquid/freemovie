@@ -7,6 +7,7 @@ import { NavBar } from "@/components/ui/navbar";
 import { API_KEY } from "@/lib/config";
 import { Movie } from "@/constants/movie";
 import { MovieSection } from "@/components/ui/movie-section";
+import { SkeletonPreloader } from "@/components/ui/skeleton-preloader";
 
 interface MoviesResult {
   page: number;
@@ -19,6 +20,7 @@ export default function Search() {
 
   const [movieResults, setMovieResults] = useState<MoviesResult>();
   const [tvResults, setTvResults] = useState<MoviesResult>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!searchQuery) return;
@@ -33,28 +35,31 @@ export default function Search() {
       }
     };
 
-    fetch(movieUrl, options)
-      .then(res => res.json())
-      .then(json => {
-        const filteredResults = {
-          ...json,
-          results: json.results.filter((movie: Movie) => movie.poster_path),
-        };
-        setMovieResults(filteredResults);
-      })
-      .catch(err => console.error(err));
-
-    fetch(tvUrl, options)
-      .then(res => res.json())
-      .then(json => {
-        const filteredResults = {
-          ...json,
-          results: json.results.filter((tv: Movie) => tv.poster_path),
-        };
-        setTvResults(filteredResults);
-      })
-      .catch(err => console.error(err));
+    Promise.all([
+      fetch(movieUrl, options)
+        .then(res => res.json())
+        .then(json => {
+          const filteredResults = {
+            ...json,
+            results: json.results.filter((movie: Movie) => movie.poster_path),
+          };
+          setMovieResults(filteredResults);
+        }),
+      fetch(tvUrl, options)
+        .then(res => res.json())
+        .then(json => {
+          const filteredResults = {
+            ...json,
+            results: json.results.filter((tv: Movie) => tv.poster_path),
+          };
+          setTvResults(filteredResults);
+        })
+    ]).finally(() => setLoading(false));
   }, [searchQuery]);
+
+  if (loading) {
+    return <SkeletonPreloader />;
+  }
 
   if (!searchQuery) {
     return (

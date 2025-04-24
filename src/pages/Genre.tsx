@@ -7,6 +7,7 @@ import { NavBar } from "@/components/ui/navbar";
 import { API_KEY } from "@/lib/config";
 import { Movie } from "@/constants/movie";
 import { MovieSection } from "@/components/ui/movie-section";
+import { SkeletonPreloader } from "@/components/ui/skeleton-preloader";
 
 interface MoviesResult {
   page: number;
@@ -20,6 +21,7 @@ export default function Genre() {
   const [movieResults, setMovieResults] = useState<MoviesResult>();
   const [tvResults, setTvResults] = useState<MoviesResult>();
   const [genreMeaning, setGenreMeaning] = useState<string | undefined>();
+  const [loading, setLoading] = useState(true);
 
   const genreFound = useRef(false);
 
@@ -36,53 +38,54 @@ export default function Genre() {
       }
     };
 
-    fetch(genreMeaningUrl, options)
-      .then(res => res.json())
-      .then(json => {
-        const genre = json.genres.find((g: { id: number; name: string }) => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
-        if (genre) {
-          setGenreMeaning(genre.name);
-          const movieUrl = `https://api.themoviedb.org/3/discover/movie?with_genres=${genre.id}&sort_by=popularity.desc`;
+    Promise.all([
+      fetch(genreMeaningUrl, options)
+        .then(res => res.json())
+        .then(json => {
+          const genre = json.genres.find((g: { id: number; name: string }) => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
+          if (genre) {
+            setGenreMeaning(genre.name);
+            const movieUrl = `https://api.themoviedb.org/3/discover/movie?with_genres=${genre.id}&sort_by=popularity.desc`;
 
-          fetch(movieUrl, options)
-            .then(res => res.json())
-            .then(json => {
-              const filteredResults = {
-                ...json,
-                results: json.results.filter((movie: Movie) => movie.poster_path),
-              };
-              setMovieResults(filteredResults);
-              genreFound.current = true;
-            })
-            .catch(err => console.error(err));
-        } else {
-          setGenreMeaning("Unknown");
-        }
-      })
-      .catch(err => console.error(err));
+            fetch(movieUrl, options)
+              .then(res => res.json())
+              .then(json => {
+                const filteredResults = {
+                  ...json,
+                  results: json.results.filter((movie: Movie) => movie.poster_path),
+                };
+                setMovieResults(filteredResults);
+                genreFound.current = true;
+              });
+          } else {
+            setGenreMeaning("Unknown");
+          }
+        }),
+      fetch(tvGenreMeaningUrl, options)
+        .then(res => res.json())
+        .then(json => {
+          const genre = json.genres.find((g: { id: number; name: string }) => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
+          if (genre) {
+            if (!genreFound.current) setGenreMeaning(genre.name);
+            const tvUrl = `https://api.themoviedb.org/3/discover/tv?with_genres=${genre.id}&sort_by=popularity.desc`;
 
-    fetch(tvGenreMeaningUrl, options)
-      .then(res => res.json())
-      .then(json => {
-        const genre = json.genres.find((g: { id: number; name: string }) => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
-        if (genre) {
-          if (!genreFound.current) setGenreMeaning(genre.name)
-          const tvUrl = `https://api.themoviedb.org/3/discover/tv?with_genres=${genre.id}&sort_by=popularity.desc`;
-
-          fetch(tvUrl, options)
-            .then(res => res.json())
-            .then(json => {
-              const filteredResults = {
-                ...json,
-                results: json.results.filter((tv: Movie) => tv.poster_path),
-              };
-              setTvResults(filteredResults);
-            })
-            .catch(err => console.error(err));
-        }
-      })
-      .catch(err => console.error(err));
+            fetch(tvUrl, options)
+              .then(res => res.json())
+              .then(json => {
+                const filteredResults = {
+                  ...json,
+                  results: json.results.filter((tv: Movie) => tv.poster_path),
+                };
+                setTvResults(filteredResults);
+              });
+          }
+        })
+    ]).finally(() => setLoading(false));
   }, [searchQuery]);
+
+  if (loading) {
+    return <SkeletonPreloader />;
+  }
 
   if (!searchQuery) {
     return (
