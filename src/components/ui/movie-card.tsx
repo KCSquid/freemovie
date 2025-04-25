@@ -5,21 +5,50 @@ import { Button } from "./button";
 import { Separator } from "./separator";
 import { Movie } from "@/constants/movie";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { useEffect, useState } from "react";
 
 export function MovieCard({ movie }: { movie: Movie }) {
   const navigate = useNavigate();
+  const [isHovering, setIsHovering] = useState(false);
+  const [trailer, setTrailer] = useState<string>();
+
+  useEffect(() => {
+    if (!isHovering) return;
+
+    const url = `https://api.themoviedb.org/3/movie/${movie.id}/videos?language=en-US`;
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1ZGI0ODY5ZTVjMGYxM2M1OTczZmEyNmQ2MGVlOGU3MiIsIm5iZiI6MTc0NTE2NTAzMC4yNzIsInN1YiI6IjY4MDUxYWU2Mjc2YmY2NGU0MWFhOGVlYiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.xE1kRINaKWk-kFA7KHgZ1wIgTBBSnO5CzUirjJjSSf8'
+      }
+    };
+
+    fetch(url, options)
+      .then(res => res.json())
+      .then(json => {
+        const youtubeTrailer = json.results.find(
+          (video: { site: string; type: string; key: string }) => video.site === "YouTube" && video.type === "Trailer"
+        );
+        if (youtubeTrailer) {
+          setTrailer(`https://www.youtube.com/embed/${youtubeTrailer.key}?autoplay=1&showinfo=0&modestbranding=1`);
+        }
+      })
+      .catch(err => console.error(err));
+  }, [isHovering, movie.id]);
 
   return (
     <div className="flex flex-col gap-2 hover:brightness-125 transition-all duration-300 w-full shadow-sm">
       {window.innerWidth > 768 ? (
         <HoverCard openDelay={500}>
-          <HoverCardTrigger asChild>
+          <HoverCardTrigger asChild onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
             <img src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`} className="rounded-md" />
           </HoverCardTrigger>
           <HoverCardContent key={movie.id} className="w-80 bg-slate-900 text-white border-slate-800 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <h1 className="text-lg font-semibold">{movie.title ?? movie.name} <span className="text-slate-400">({(movie.release_date ?? movie.first_air_date).slice(0, 4)})</span></h1>
               <Separator className="bg-slate-800" />
+              {trailer && <iframe src={trailer} allowFullScreen className="border border-slate-800 rounded-sm"></iframe>}
               <h1 className="text-sm font-base text-slate-400">{movie.overview}</h1>
             </div>
 
