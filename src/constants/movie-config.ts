@@ -6,6 +6,13 @@ export const movieConfig = [
     category: "popular",
   },
   {
+    key: "tvPopular",
+    title: "Popular TV Shows",
+    description: "Most popular TV shows on the air.",
+    category: "popular",
+    type: "tv",
+  },
+  {
     key: "nowPlaying",
     title: "Now Playing",
     description: "Movies currently playing in theaters. (Excluding Popular)",
@@ -18,23 +25,16 @@ export const movieConfig = [
     category: "top_rated",
   },
   {
-    key: "upcoming",
-    title: "Upcoming Movies",
-    description: "Movies that are coming soon to theaters.",
-    category: "upcoming",
-  },
-  {
-    key: "tvPopular",
-    title: "Popular TV Shows",
-    description: "Most popular TV shows on the air.",
-    category: "popular",
-    type: "tv",
-  },
-  {
     key: "tvTopRated",
     title: "Top Rated TV Shows",
     description: "Top-rated TV shows as of current.",
     category: "top_rated",
     type: "tv",
+  },
+  {
+    key: "upcoming",
+    title: "Upcoming Movies",
+    description: "Movies that are coming soon to theaters.",
+    category: "upcoming",
   },
 ];

@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { TriangleAlert } from "lucide-react";
+import { Fullscreen, TriangleAlert } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -15,6 +15,7 @@ import { API_KEY } from "@/lib/config";
 import { MovieSection } from "@/components/ui/movie-section";
 import { MoviesResult } from "@/constants/movies-result";
 import { Movie } from "@/constants/movie";
+import { Button } from "@/components/ui/button";
 
 interface MovieDetails {
   title: string;
@@ -85,19 +86,44 @@ export default function MoviePlayer() {
       <div className="flex flex-col justify-center gap-16">
         <div className="border p-4 border-slate-800 rounded-md flex flex-col gap-4 justify-center">
           <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-slate-500 hover:text-slate-400 font-medium">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/" className="text-slate-500 hover:text-slate-400 font-medium">{movieId ? "Movies" : "TV Shows"}</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage className="text-white font-semibold">{movieDetails.title ?? "Watch"}</BreadcrumbPage>
-              </BreadcrumbItem>
+            <BreadcrumbList className="flex items-center justify-between">
+              <div className="flex gap-2 items-center">
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/" className="text-slate-500 hover:text-slate-400 font-medium">Home</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/" className="text-slate-500 hover:text-slate-400 font-medium">{movieId ? "Movies" : "TV Shows"}</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-white font-semibold">{movieDetails.title ?? "Watch"}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </div>
+              <Button className="cursor-pointer" variant={"ghost"} size={"icon"} onClick={() => {
+                const frame = document.querySelector("iframe");
+                if (frame) {
+                  frame.setAttribute(
+                    "style",
+                    "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"
+                  );
+                  document.body.style.overflow = "hidden";
+
+                  const handleEscape = (event: KeyboardEvent) => {
+                    if (event.key === "Escape") {
+                      frame.removeAttribute("style");
+                      document.body.style.overflow = "";
+                      document.removeEventListener("keydown", handleEscape);
+                    }
+                  };
+
+                  document.addEventListener("keydown", handleEscape);
+                }
+              }}>
+                <Fullscreen />
+              </Button>
             </BreadcrumbList>
+
           </Breadcrumb>
           <iframe
             src={`https://vidsrc.xyz/embed/${movieId ? "movie" : "tv"}/${movieId ?? tvId}`}
@@ -112,7 +138,7 @@ export default function MoviePlayer() {
           </div>
         </div>
         <MovieSection title="You May Also Like" description="Movies & TV Shows similar to this one." movies={similarMovies.results} />
-      </div>
-    </div>
+      </div >
+    </div >
   )
 }
