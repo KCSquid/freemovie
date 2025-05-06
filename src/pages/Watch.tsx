@@ -106,45 +106,12 @@ export default function MoviePlayer() {
                 size={"icon"}
                 onClick={() => {
                   const frame = document.querySelector("iframe");
-                  const fullscreenOverlay = document.querySelector("#fullscreen-overlay");
+                  if (!frame) return;
 
-                  if (frame && !fullscreenOverlay) {
-                    frame.setAttribute(
-                      "style",
-                      "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"
-                    );
-                    document.body.style.overflow = "hidden";
-
-                    const closeButton = document.createElement("button");
-                    closeButton.id = "fullscreen-overlay";
-                    closeButton.innerText = "✕";
-                    closeButton.style.position = "fixed";
-                    closeButton.style.top = "10px";
-                    closeButton.style.right = "10px";
-                    closeButton.style.zIndex = "1000000";
-                    closeButton.style.background = "rgba(0, 0, 0, 0.7)";
-                    closeButton.style.color = "white";
-                    closeButton.style.border = "none";
-                    closeButton.style.borderRadius = "50%";
-                    closeButton.style.width = "40px";
-                    closeButton.style.height = "40px";
-                    closeButton.style.cursor = "pointer";
-                    closeButton.style.fontSize = "20px";
-                    closeButton.style.display = "flex";
-                    closeButton.style.alignItems = "center";
-                    closeButton.style.justifyContent = "center";
-
-                    closeButton.onclick = () => {
-                      frame.removeAttribute("style");
-                      document.body.style.overflow = "";
-                      closeButton.remove();
-                    };
-
-                    document.body.appendChild(closeButton);
-                  } else if (frame && fullscreenOverlay) {
-                    frame.removeAttribute("style");
-                    document.body.style.overflow = "";
-                    fullscreenOverlay.remove();
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                  } else {
+                    frame.requestFullscreen();
                   }
                 }}
               >
