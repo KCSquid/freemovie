@@ -100,26 +100,54 @@ export default function MoviePlayer() {
                   <BreadcrumbPage className="text-white font-semibold">{movieDetails.title ?? "Watch"}</BreadcrumbPage>
                 </BreadcrumbItem>
               </div>
-              <Button className="cursor-pointer" variant={"ghost"} size={"icon"} onClick={() => {
-                const frame = document.querySelector("iframe");
-                if (frame) {
-                  frame.setAttribute(
-                    "style",
-                    "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"
-                  );
-                  document.body.style.overflow = "hidden";
+              <Button
+                className="cursor-pointer"
+                variant={"ghost"}
+                size={"icon"}
+                onClick={() => {
+                  const frame = document.querySelector("iframe");
+                  const fullscreenOverlay = document.querySelector("#fullscreen-overlay");
 
-                  const handleEscape = (event: KeyboardEvent) => {
-                    if (event.key === "Escape") {
+                  if (frame && !fullscreenOverlay) {
+                    frame.setAttribute(
+                      "style",
+                      "position:fixed; top:0; left:0; bottom:0; right:0; width:100%; height:100%; border:none; margin:0; padding:0; overflow:hidden; z-index:999999;"
+                    );
+                    document.body.style.overflow = "hidden";
+
+                    const closeButton = document.createElement("button");
+                    closeButton.id = "fullscreen-overlay";
+                    closeButton.innerText = "✕";
+                    closeButton.style.position = "fixed";
+                    closeButton.style.top = "10px";
+                    closeButton.style.right = "10px";
+                    closeButton.style.zIndex = "1000000";
+                    closeButton.style.background = "rgba(0, 0, 0, 0.7)";
+                    closeButton.style.color = "white";
+                    closeButton.style.border = "none";
+                    closeButton.style.borderRadius = "50%";
+                    closeButton.style.width = "40px";
+                    closeButton.style.height = "40px";
+                    closeButton.style.cursor = "pointer";
+                    closeButton.style.fontSize = "20px";
+                    closeButton.style.display = "flex";
+                    closeButton.style.alignItems = "center";
+                    closeButton.style.justifyContent = "center";
+
+                    closeButton.onclick = () => {
                       frame.removeAttribute("style");
                       document.body.style.overflow = "";
-                      document.removeEventListener("keydown", handleEscape);
-                    }
-                  };
+                      closeButton.remove();
+                    };
 
-                  document.addEventListener("keydown", handleEscape);
-                }
-              }}>
+                    document.body.appendChild(closeButton);
+                  } else if (frame && fullscreenOverlay) {
+                    frame.removeAttribute("style");
+                    document.body.style.overflow = "";
+                    fullscreenOverlay.remove();
+                  }
+                }}
+              >
                 <Fullscreen />
               </Button>
             </BreadcrumbList>
