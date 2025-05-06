@@ -19,6 +19,13 @@ export const movieConfig = [
     category: "now_playing",
   },
   {
+    key: "airingToday",
+    title: "Airing Today",
+    description: "TV shows airing today on various networks.",
+    category: "airing_today",
+    type: "tv",
+  },
+  {
     key: "topRated",
     title: "Top Rated",
     description: "Top-rated movies of all time.",
@@ -37,4 +44,11 @@ export const movieConfig = [
     description: "Movies that are coming soon to theaters.",
     category: "upcoming",
   },
+  {
+    key: "onTheAir",
+    title: "On The Air",
+    description: "TV shows airing within the next 7 days.",
+    category: "on_the_air",
+    type: "tv"
+  }
 ];

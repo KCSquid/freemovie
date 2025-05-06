@@ -93,7 +93,7 @@ export default function MoviePlayer() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/" className="text-slate-500 hover:text-slate-400 font-medium">{movieId ? "Movies" : "TV Shows"}</BreadcrumbLink>
+                  <BreadcrumbLink href={`/${movieId ? "movies" : "tv"}`} className="text-slate-500 hover:text-slate-400 font-medium">{movieId ? "Movies" : "TV Shows"}</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>

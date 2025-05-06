@@ -17,6 +17,8 @@ import { SkeletonPreloader } from "./components/ui/skeleton-preloader";
 import { Collapsible, CollapsibleContent } from "./components/ui/collapsible";
 import { CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { ChevronsUpDown } from "lucide-react";
+import Movies from "./pages/Movies";
+import TV from "./pages/TV";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/watch" element={<Watch />} />
         <Route path="/search" element={<Search />} />
         <Route path="/genre" element={<Genre />} />
+        <Route path="/movies" element={<Movies />} />
+        <Route path="/tv" element={<TV />} />
       </Routes>
     </Router>
   );
